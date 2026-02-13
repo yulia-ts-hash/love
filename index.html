@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Валентинка ❤️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&display=swap" rel="stylesheet">
+    <style>
+        /* --- RESET & BASIC --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #ffc0e0, #ffe6f0);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; /* Чтобы скролл не появлялся при полетах */
+            position: relative;
+        }
+
+        /* --- ГЛАВНЫЙ КОНТЕЙНЕР (LAYOUT) --- */
+        .modal {
+            background: linear-gradient(145deg, #ffffff, #fff9fb);
+            padding: 40px;
+            text-align: center;
+            width: 90vw;
+            max-width: 800px; /* Сделала покомпактнее для галереи */
+            min-height: 60vh;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(255, 77, 109, 0.4);
+            border: 6px solid #ff4d6d;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            animation: popIn 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            position: relative;
+            z-index: 20;
+            transition: all 0.5s ease;
+        }
+
+        /* Если это экран галереи, расширяем модалку */
+        .modal.gallery-mode {
+            max-width: 1200px;
+            height: 90vh;
+            justify-content: flex-start;
+            padding-top: 60px;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.7) rotate(-5deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0); opacity: 1; }
+        }
+
+        h2 {
+            color: #ff4d6d;
+            font-weight: 900;
+            margin-bottom: 20px;
+            font-size: clamp(24px, 5vw, 48px); /* Адаптивный шрифт */
+            text-shadow: 3px 3px 0 #ffe6ec;
+            letter-spacing: 2px;
+        }
+
+        h1 {
+            font-size: clamp(32px, 6vw, 64px);
+            margin-bottom: 40px;
+            color: #2d2d2d;
+            line-height: 1.2;
+            font-weight: 800;
+        }
+
+        /* --- КНОПКИ --- */
+        .btn-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 20px 40px;
+            font-size: clamp(20px, 4vw, 32px);
+            border: none;
+            border-radius: 100px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-weight: 900;
+            letter-spacing: 2px;
+            position: relative;
+        }
+
+        /* Кнопка ДА */
+        .yes {
+            background: #ff4d6d;
+            color: white;
+            border: 4px solid #ff1a4f;
+            box-shadow: 0 10px 0 #b3002d, 0 20px 30px rgba(255, 77, 109, 0.4);
+            z-index: 10; /* Чтобы была выше */
+        }
+        .yes:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 0 #b3002d, 0 30px 50px rgba(255, 77, 109, 0.6);
+        }
+        .yes:active {
+            transform: scale(0.95);
+            box-shadow: 0 5px 0 #b3002d;
+        }
+
+        /* Кнопка НЕТ (Абсолютная, хитрая) */
+        .no {
+            position: absolute; /* Важно для полетов */
+            background: #f0f0f0;
+            color: #444;
+            border: 4px solid #aaa;
+            box-shadow: 0 10px 0 #6b6b6b;
+            z-index: 100; /* Всегда сверху */
+            transition: top 0.3s ease, left 0.3s ease, transform 0.2s ease;
+            /* Начальная позиция (примерная, JS поправит) */
+            top: 70%;
+            left: 60%;
+        }
+
+        /* --- ЭКРАНЫ (SCREENS) --- */
+        .hidden { display: none !important; }
+
+        /* Галерея (появляется при "ДА") */
+        .gallery-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeIn 1s ease;
+        }
+
+        .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-height: 60vh;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        /* КАРТОЧКА С ФОТО */
+        .photo-card {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            aspect-ratio: 1 / 1; /* Квадратные фотки */
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+            border: 5px solid transparent;
+            /* Эффект радужной рамки */
+            animation: rainbowBorder 3s linear infinite;
+        }
+
+        .photo-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-card:hover {
+            transform: scale(1.05) rotate(3deg);
+            z-index: 10;
+        }
+
+        @keyframes rainbowBorder {
+            0% { border-color: #ff0000; box-shadow: 0 0 15px #ff0000; }
+            14% { border-color: #ff7f00; box-shadow: 0 0 15px #ff7f00; }
+            28% { border-color: #ffff00; box-shadow: 0 0 15px #ffff00; }
+            42% { border-color: #00ff00; box-shadow: 0 0 15px #00ff00; }
+            57% { border-color: #0000ff; box-shadow: 0 0 15px #0000ff; }
+            71% { border-color: #4b0082; box-shadow: 0 0 15px #4b0082; }
+            85% { border-color: #9400d3; box-shadow: 0 0 15px #9400d3; }
+            100% { border-color: #ff0000; box-shadow: 0 0 15px #ff0000; }
+        }
+
+        /* Текст успеха */
+        .success-text {
+            font-size: clamp(24px, 4vw, 40px);
+            font-weight: 900;
+            background: linear-gradient(45deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
+            background-size: 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbowText 5s ease infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes rainbowText {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- ЛЕТАЮЩИЕ СЕРДЕЧКИ --- */
+        .heart {
+            position: absolute;
+            font-size: 40px;
+            animation: fly 4s linear forwards;
+            z-index: 999;
+            pointer-events: none;
+        }
+
+        @keyframes fly {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--x), var(--y)) scale(0); opacity: 0; }
+        }
+
+        /* --- ЭКРАН ШУТКИ --- */
+        .joke-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.95);
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .joke-text {
+            font-size: clamp(40px, 8vw, 80px);
+            color: #ff4d6d;
+            font-weight: 900;
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-8px, 0, 0); }
+            40%, 60% { transform: translate3d(8px, 0, 0); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="modal" id="modal">
+        
+        <div id="questionScreen">
+            <h2>❤️ Для самого любимого ❤️</h2>
+            <h1>Ты будешь моей валентинкой?</h1>
+            <div class="btn-container">
+                <button class="yes" id="yesBtn">ДА, КОНЕЧНО! 😍</button>
+            </div>
+        </div>
+
+        <div id="successScreen" class="gallery-container hidden">
+            <div class="success-text">УРА! Я ТАК И ЗНАЛА! 🎉💖</div>
+            <div style="font-size: 20px; color: #555; margin-bottom: 15px;">Вместе навсегда💖</div>
+            
+            <div class="photos-grid">
+                <div class="photo-card"><img src="img/img_1.jpg" ></div>
+                <div class="photo-card"><img src="img/img_2.jpg" ></div>
+                <div class="photo-card"><img src="img/img_3.jpg" ></div>
+                <div class="photo-card"><img src="img/img_4.jpg" ></div>
+            </div>
+            
+            <h2 style="margin-top: 30px;">С 14 Февраля! 💘</h2>
+        </div>
+
+    </div>
+
+    <button class="no" id="noBtn">НЕТ 😑</button>
+
+    <div id="jokeOverlay" class="joke-overlay hidden">
+        <div class="joke-text">АХАХАХ! 😈</div>
+        <h2 style="margin-top: 20px;">У тебя нет выбора!</h2>
+    </div>
+
+    <script>
+        // Сеньор Помидор объясняет: используем IIFE (Immediately Invoked Function Expression),
+        // чтобы изолировать переменные и не засорять глобальную область видимости window.
+        (function() {
+            const noBtn = document.getElementById('noBtn');
+            const yesBtn = document.getElementById('yesBtn');
+            const modal = document.getElementById('modal');
+            const questionScreen = document.getElementById('questionScreen');
+            const successScreen = document.getElementById('successScreen');
+            const jokeOverlay = document.getElementById('jokeOverlay');
+
+            let noHoverCount = 0; // Считаем попытки наведения
+
+            // === ЛОГИКА КНОПКИ "НЕТ" ===
+            
+            // Функция телепортации кнопки
+            function moveButton() {
+                // Получаем размеры окна (Viewport)
+                const maxX = window.innerWidth - noBtn.offsetWidth - 20;
+                const maxY = window.innerHeight - noBtn.offsetHeight - 20;
+
+                // Генерируем случайные координаты
+                const randomX = Math.random() * maxX;
+                const randomY = Math.random() * maxY;
+
+                // Применяем новые координаты
+                noBtn.style.left = randomX + 'px';
+                noBtn.style.top = randomY + 'px';
+                
+                // Добавляем случайный поворот для веселья
+                const rotate = (Math.random() * 40) - 20; 
+                noBtn.style.transform = `rotate(${rotate}deg) scale(1)`;
+
+                // Меняем цвет кнопки, чтобы она "злилась"
+                if (noHoverCount > 5) {
+                    noBtn.style.background = '#ffcccc';
+                    noBtn.innerText = "НЕ ПОЙМАЕШЬ!";
+                }
+            }
+
+            // Обработчик на наведение мыши (для ПК) - срабатывает ДО клика
+            noBtn.addEventListener('mouseenter', () => {
+                noHoverCount++;
+                moveButton();
+            });
+
+            // Обработчик клика (для телефонов или если успел нажать)
+            noBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                // Показываем экран-шутку
+                jokeOverlay.classList.remove('hidden');
+                
+                // Через 2 секунды прячем шутку и возвращаем кнопку
+                setTimeout(() => {
+                    jokeOverlay.classList.add('hidden');
+                    moveButton(); // Снова убегаем
+                }, 2000);
+            });
+
+
+            // === ЛОГИКА КНОПКИ "ДА" ===
+            
+            yesBtn.addEventListener('click', () => {
+                // 1. Прячем кнопку "НЕТ" навсегда
+                noBtn.style.display = 'none';
+
+                // 2. Меняем layout модалки (Layout Shift)
+                modal.classList.add('gallery-mode'); // Добавляем класс для расширения окна
+                questionScreen.classList.add('hidden'); // Убираем вопрос
+                successScreen.classList.remove('hidden'); // Показываем галерею
+
+                // 3. Запускаем конфетти (Side Effects)
+                createConfetti();
+                
+                // Запускаем еще конфетти каждые 3 секунды для праздника
+                setInterval(createConfetti, 3000);
+            });
+
+
+            // === ФУНКЦИЯ КОНФЕТТИ (Particle System) ===
+            function createConfetti() {
+                const emojis = ["❤️", "💖", "🦄", "🌈", "✨", "🔥", "😻", "💍"];
+                
+                // Создаем 50 частиц
+                for (let i = 0; i < 50; i++) {
+                    const heart = document.createElement("div");
+                    heart.classList.add("heart");
+                    heart.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+                    
+                    // Рандомная стартовая позиция по горизонтали
+                    heart.style.left = Math.random() * 100 + "vw";
+                    heart.style.top = Math.random() * 100 + "vh";
+                    
+                    // Вычисляем вектор полета (Custom Property --x, --y для CSS)
+                    // Частицы разлетаются во все стороны
+                    const x = (Math.random() * 200 - 100) + "vw";
+                    const y = (Math.random() * 200 - 100) + "vh";
+                    
+                    heart.style.setProperty('--x', x);
+                    heart.style.setProperty('--y', y);
+                    
+                    // Рандомный размер
+                    const size = Math.random() * 2 + 1; // от 1 до 3 rem
+                    heart.style.fontSize = size + "rem";
+
+                    document.body.appendChild(heart);
+
+                    // Garbage Collection (GC): удаляем элемент из DOM после анимации,
+                    // чтобы не забивать память браузера.
+                    setTimeout(() => {
+                        heart.remove();
+                    }, 4000);
+                }
+            }
+
+        })();
+    </script>
+</body>
+</html>
